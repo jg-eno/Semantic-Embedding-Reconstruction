@@ -1,0 +1,11 @@
+datasets/msmarco_token_sentence_embeddings.h5
+datasets/corrected_msmarco_token_sentence_embeddings.h5
+datasets/gte_msmarco_token_sentence_embeddings.h5
+*/*/__pycache__
+/venv
+/checkpoints
+/wandb
+*.env
+*/*/hf_upload_staging
+*/*/*.tsv
+*/*/*ruff_cache

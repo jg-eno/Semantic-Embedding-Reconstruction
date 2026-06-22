@@ -1,0 +1,7 @@
+transformers
+torch
+datasets
+magic-wormhole
+wandb
+peft
+sentence-transformers

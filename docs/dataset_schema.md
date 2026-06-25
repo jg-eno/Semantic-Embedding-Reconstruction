@@ -43,7 +43,7 @@ consume it the same way at training time.
 
 ## Visibility
 
-Both dataset repos are created with `private=True` by `dataset_push.py`'s
+Both dataset repos are created with `private=False` by `dataset_push.py`'s
 `api.create_repo(...)` call. If you need anonymous/no-token access (e.g. for
 others reproducing training), you'll need to switch visibility to public on
 the Hub — this isn't something the script does automatically.

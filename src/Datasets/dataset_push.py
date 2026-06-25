@@ -49,7 +49,6 @@ api = HfApi()
 api.create_repo(
     repo_id=DATASET_NAME,
     repo_type="dataset",
-    private=True,
     exist_ok=True
 )
 

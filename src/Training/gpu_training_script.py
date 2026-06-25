@@ -33,6 +33,7 @@ def resolve_next_repo_version(prefix: str) -> str:
     Looks up existing model repos under the user's namespace matching
     `prefix{int}`, finds the highest existing version, and returns
     `prefix{highest + 1}`. Falls back to `prefix1` if none exist yet.
+
     """
     namespace, _, base_name = prefix.rpartition("/")
     pattern = re.compile(rf"^{re.escape(base_name)}(\d+)$")
@@ -57,7 +58,7 @@ def resolve_next_repo_version(prefix: str) -> str:
     return resolved
 
 
-REPO_PREFIX     = "jg-eno/ReLoDer_v"   # auto-versioned: actual repo resolved at runtime 
+REPO_PREFIX     = "jg-eno/ReLoDer_v"   # auto-versioned: actual repo resolved at runtime as REPO_PREFIX + next int
 TARGET_REPO = resolve_next_repo_version(REPO_PREFIX)
 print(f"  Target HF repo for this run: {TARGET_REPO}\n")
 
@@ -66,16 +67,16 @@ print(f"  Target HF repo for this run: {TARGET_REPO}\n")
 # ==========================================
 MODEL_NAME      = "Qwen/Qwen3-0.6B"
 PARAGRAPH_DIM   = 1024
-PREFIX_LEN      = 64
+PREFIX_LEN      = 128
 MAX_TEXT_LEN    = 128
 BATCH_SIZE      = 64
 GRAD_ACCUM      = 2          # Effective batch = 128
 LEARNING_RATE   = 3e-4
-TOTAL_SAMPLES   = 100_000   
-NUM_EPOCHS      = 20
+TOTAL_SAMPLES   = 1_000_192  
+NUM_EPOCHS      = 10
 BEST_EPOCH_PATH = Path("checkpoints/best_epoch_checkpoint.pt")
 BEST_STEPS_PATH = Path("checkpoints/best_steps_checkpoint.pt")
-DATASET         = "jg-eno/msmarco-v5.1-Qwen-Embeddings"
+DATASET         = "jg-eno/MSMACRO-1M-Qwen-Embeddings"
 LOG_INTERVAL    = 50         # Print loss to terminal every N batches
 AUX_LOSS_WEIGHT = 1        
 
@@ -119,7 +120,7 @@ if tokenizer.pad_token_id is None:
 
 base_decoder = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
-    torch_dtype=torch.bfloat16,
+    dtype=torch.bfloat16,
     device_map={"": device},
 )
 
@@ -130,8 +131,8 @@ lora_config = LoraConfig(
     lora_dropout=0.05,
     target_modules=[
         "q_proj", "v_proj", "k_proj", "o_proj",
-        "gate_proj", "up_proj", "down_proj",  # MLP layers — worth ablating if recon quality plateaus
-    ],
+        "gate_proj", "up_proj", "down_proj",  # MLP layers 
+    ]
 )
 decoder_with_lora = get_peft_model(base_decoder, lora_config)
 
@@ -221,7 +222,6 @@ model.m_parallel_mlps.to(device=device, dtype=torch.bfloat16)
 # ==========================================
 # OPTIMIZER & SCHEDULER
 # ==========================================
-
 mlp_params  = list(model.m_parallel_mlps.parameters())
 lora_params = [p for n, p in model.decoder.named_parameters() if p.requires_grad]
 

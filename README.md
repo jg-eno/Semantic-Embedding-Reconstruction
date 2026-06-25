@@ -84,6 +84,10 @@ Key configuration (see top of script for the full list):
 
 The script streams the dataset directly from the Hub (no local copy), logs to Weights & Biases, checkpoints both per-epoch and mid-epoch (every 20% of an epoch), and auto-versions its output repo (`jg-eno/ReLoDer_v{n}`) by checking the highest existing version under the namespace before uploading the best checkpoint.
 
-## Status
 
-Active research project. Training has progressed through several versions (v7, v8, and a full 10-epoch run on an A100 producing the current best checkpoint, `jg-eno/ReLoDer_v2`), with a hyperparameter sweep identifying `λ=1` for the auxiliary loss weight and LoRA rank 8 as a strong operating point. A research paper describing the method (dataset curation, architecture, and embedding-richness analysis) is in progress alongside this code.
+# To-do
+
+- Add Dataset Links, requirements.txt (uv files), Open-Source weights, Running instructions, poetry, instruction about env
+- Only 1 requirements.txt, uv.lock and pyproject.toml
+
+- Python 3.12.3

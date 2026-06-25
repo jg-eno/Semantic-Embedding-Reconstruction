@@ -33,9 +33,6 @@ def resolve_next_repo_version(prefix: str) -> str:
     Looks up existing model repos under the user's namespace matching
     `prefix{int}`, finds the highest existing version, and returns
     `prefix{highest + 1}`. Falls back to `prefix1` if none exist yet.
-
-    `prefix` is expected to look like "jg-eno/ReLoDer_v" (namespace + base
-    name, version number omitted).
     """
     namespace, _, base_name = prefix.rpartition("/")
     pattern = re.compile(rf"^{re.escape(base_name)}(\d+)$")
@@ -60,7 +57,7 @@ def resolve_next_repo_version(prefix: str) -> str:
     return resolved
 
 
-REPO_PREFIX     = "jg-eno/ReLoDer_v"   # auto-versioned: actual repo resolved at runtime as REPO_PREFIX + next int
+REPO_PREFIX     = "jg-eno/ReLoDer_v"   # auto-versioned: actual repo resolved at runtime 
 TARGET_REPO = resolve_next_repo_version(REPO_PREFIX)
 print(f"  Target HF repo for this run: {TARGET_REPO}\n")
 
@@ -74,13 +71,13 @@ MAX_TEXT_LEN    = 128
 BATCH_SIZE      = 64
 GRAD_ACCUM      = 2          # Effective batch = 128
 LEARNING_RATE   = 3e-4
-TOTAL_SAMPLES   = 100_000   # int, not float — avoids float leaking into batch/scheduler math
+TOTAL_SAMPLES   = 100_000   
 NUM_EPOCHS      = 20
 BEST_EPOCH_PATH = Path("checkpoints/best_epoch_checkpoint.pt")
 BEST_STEPS_PATH = Path("checkpoints/best_steps_checkpoint.pt")
 DATASET         = "jg-eno/msmarco-v5.1-Qwen-Embeddings"
 LOG_INTERVAL    = 50         # Print loss to terminal every N batches
-AUX_LOSS_WEIGHT = 1        # Weight on cosine aux loss relative to LM loss — tune this
+AUX_LOSS_WEIGHT = 1        
 
 # Early stopping
 ES_PATIENCE     = 3          # Stop if no improvement for this many epochs
@@ -224,10 +221,7 @@ model.m_parallel_mlps.to(device=device, dtype=torch.bfloat16)
 # ==========================================
 # OPTIMIZER & SCHEDULER
 # ==========================================
-# Separate LR for the from-scratch prefix MLPs vs. the pretrained LoRA adapters.
-# The MLPs are randomly initialized and need a stronger signal; the LoRA
-# adapters sit on top of pretrained weights and tend to destabilize at the
-# same LR that's appropriate for a from-scratch module.
+
 mlp_params  = list(model.m_parallel_mlps.parameters())
 lora_params = [p for n, p in model.decoder.named_parameters() if p.requires_grad]
 

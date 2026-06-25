@@ -1,0 +1,18 @@
+[project]
+name = "workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate==1.14.0",
+    "datasets==5.0.0",
+    "huggingface-hub==1.20.1",
+    "numpy==2.5.0",
+    "pandas==3.0.3",
+    "peft==0.19.1",
+    "python-dotenv==1.2.2",
+    "torch==2.12.1",
+    "tqdm==4.68.3",
+    "transformers==5.12.1",
+    "wandb==0.28.0",
+]

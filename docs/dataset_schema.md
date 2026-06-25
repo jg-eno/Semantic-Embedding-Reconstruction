@@ -3,7 +3,7 @@
 Both Hub datasets — `jg-eno/MSMACRO-1M-Qwen-Embeddings` and
 `jg-eno/msmarco-v5.1-Qwen-Embeddings` — are produced by the same pipeline
 (`src/data/dataset_push.py`) and share the same per-record schema. They
-differ only in record count (1,000,000 vs 100,000) and which pipeline run
+differ only in record count (1M vs 100K) and which pipeline run
 produced them.
 
 Source data is `microsoft/ms_marco` (passages field), streamed rather than
@@ -35,7 +35,7 @@ batch-shaped.
 ## Storage format
 
 Data is pushed to the Hub as a series of Parquet chunks
-(`data/train-chunk{00000..N}.parquet`), each containing `CHUNK_SIZE` (2,000)
+(`data/train-chunk{00000..N}.parquet`), each containing `CHUNK_SIZE` (2,048)
 records, rather than one single file. This lets the push script run
 incrementally against a streamed source dataset without holding the full
 dataset in memory, and lets `datasets.load_dataset(..., streaming=True)`

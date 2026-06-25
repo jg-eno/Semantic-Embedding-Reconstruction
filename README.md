@@ -48,6 +48,7 @@ Dataset field reference: [`docs/dataset_schema.md`](docs/dataset_schema.md).
     │   └── gpu_training_script.py # main training entry point
     └── Evaluation/
         └── run_inference.py        # load a checkpoint, generate a reconstruction
+        └── eval_script.ipynb       # ROUGE, cosine-sim, embedding-space comparisons
 ```
 
 ---
@@ -56,8 +57,8 @@ Dataset field reference: [`docs/dataset_schema.md`](docs/dataset_schema.md).
 
 | dataset | size |
 |---|---|
-| [`jg-eno/MSMACRO-1M-Qwen-Embeddings`](https://huggingface.co/datasets/jg-eno/MSMACRO-1M-Qwen-Embeddings) | 1,000,000 records |
-| [`jg-eno/msmarco-v5.1-Qwen-Embeddings`](https://huggingface.co/datasets/jg-eno/msmarco-v5.1-Qwen-Embeddings) | 100,000 records |
+| [`jg-eno/MSMACRO-1M-Qwen-Embeddings`](https://huggingface.co/datasets/jg-eno/MSMACRO-1M-Qwen-Embeddings) | 1M records |
+| [`jg-eno/msmarco-v5.1-Qwen-Embeddings`](https://huggingface.co/datasets/jg-eno/msmarco-v5.1-Qwen-Embeddings) | 100K records |
 
 Both are built by `src/Datasets/dataset_push.py` from `microsoft/ms_marco`
 passages, encoded with `Qwen/Qwen3-Embedding-0.6B`. Field-by-field schema in

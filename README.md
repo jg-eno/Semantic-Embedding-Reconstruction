@@ -158,7 +158,7 @@ Key config (edit constants at the top of the script):
 |---|---|
 | decoder | `Qwen/Qwen3-0.6B` |
 | dataset | `jg-eno/MSMACRO-1M-Qwen-Embeddings` |
-| prefix length | 64 |
+| prefix length | 64 / 128 |
 | LoRA rank / alpha | 32 / 64 |
 | effective batch size | 128 (64 × 2 grad-accum) |
 | learning rate | 3e-4 (MLPs), 9e-5 (LoRA) |

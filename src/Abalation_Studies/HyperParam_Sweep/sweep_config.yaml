@@ -1,0 +1,23 @@
+program: hyperparam_sweep.py
+method: grid          # smarter than grid given 3x3x? combos with shared GPU budget; switch to "grid" for exhaustive search
+
+metric:
+  name: best_epoch_loss
+  goal: minimize
+
+parameters:
+  prefix_len:
+    values: [32, 64, 128]
+
+  num_hidden_layers:
+    values: [1, 2, 3]
+
+  hidden_dim:
+    values: [2048, 4096, 8192]
+
+# Kills clearly-losing trials early instead of letting them run all 5 epochs.
+# Compares against other trials at the same step using a Hyperband-style schedule.
+early_terminate:
+  type: hyperband
+  min_iter: 1          # epochs, since we log epoch_avg_loss once per epoch
+  eta: 2

@@ -1,0 +1,40 @@
+program: hyperparam_sweep.py
+project: Workspace    # same W&B project as the original sweep, so both show up together
+method: grid          # exhaustive over the explicit failed-run list below
+
+metric:
+  name: best_epoch_loss
+  goal: minimize
+
+# Only the 13 (hidden_dim, num_hidden_layers, prefix_len) combos that OOM'd
+# in the previous sweep. Re-run with a smaller batch size.
+#
+# Encoded as a single composite parameter (list of dicts) instead of three
+# independent `values:` lists, because the failed combos are NOT a full
+# cross-product of {2048,4096,8192} x {1,2,3} x {32,64,128} (27 combos) —
+# they're a specific 13-item subset. Using independent values: per param
+# would re-run many configs that already succeeded.
+parameters:
+  hparam_combo:
+    values:
+      - {hidden_dim: 2048, num_hidden_layers: 3, prefix_len: 128}
+      - {hidden_dim: 8192, num_hidden_layers: 2, prefix_len: 32}
+      - {hidden_dim: 8192, num_hidden_layers: 2, prefix_len: 128}
+      - {hidden_dim: 8192, num_hidden_layers: 2, prefix_len: 64}
+      - {hidden_dim: 4096, num_hidden_layers: 2, prefix_len: 128}
+      - {hidden_dim: 2048, num_hidden_layers: 2, prefix_len: 128}
+      - {hidden_dim: 8192, num_hidden_layers: 3, prefix_len: 32}
+      - {hidden_dim: 8192, num_hidden_layers: 3, prefix_len: 128}
+      - {hidden_dim: 8192, num_hidden_layers: 1, prefix_len: 64}
+      - {hidden_dim: 4096, num_hidden_layers: 3, prefix_len: 128}
+      - {hidden_dim: 4096, num_hidden_layers: 1, prefix_len: 128}
+      - {hidden_dim: 8192, num_hidden_layers: 3, prefix_len: 64}
+      - {hidden_dim: 8192, num_hidden_layers: 1, prefix_len: 128}
+
+# Disabled for the rerun: these are known-bad configs, not a search where
+# you want early stopping against sibling trials. Re-enable if you end up
+# re-running a larger set and want hyperband pruning again.
+# early_terminate:
+#   type: hyperband
+#   min_iter: 1
+#   eta: 2

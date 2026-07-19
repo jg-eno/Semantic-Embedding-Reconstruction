@@ -28,14 +28,26 @@ Dataset field reference: [`docs/dataset_schema.md`](docs/dataset_schema.md).
 
 ---
 
+## Sampler Tool
+
+[`src/Sampler_Tool`](src/Sampler_Tool) is a standalone inference tool built on top of this project. Given a sentence, it encodes it into an embedding and runs the inverter `n` times with an escalating temperature schedule to produce a set of maximally diverse reconstructions — all anchored to the same point in embedding space.
+
+This is distinct from LLM rephrasing: every output is a **preimage of a fixed embedding vector**, not a sample from a language model's prior. The semantic content is constrained by the embedding geometry, not by a prompt.
+
+Use cases: controlled semantic data augmentation, embedding space coverage analysis, adversarial probing of retrieval systems, and reconstruction fidelity benchmarking.
+
+→ **[Full documentation and quickstart](src/Sampler_Tool/README.md)**
+
+---
+
 ## Repository layout
 
 ```
 .
 ├── pyproject.toml      # dependencies (single source of truth)
 ├── requirements.txt    # exported from uv.lock, for non-uv users
-├── uv.lock              # pinned, hashed dependency resolution
-├── .env.example          # template for required secrets
+├── uv.lock             # pinned, hashed dependency resolution
+├── .env.example        # template for required secrets
 │
 ├── docs/
 │   ├── architecture.md
@@ -46,9 +58,11 @@ Dataset field reference: [`docs/dataset_schema.md`](docs/dataset_schema.md).
     │   └── dataset_push.py        # builds the embedding dataset, pushes to HF Hub
     ├── Training/
     │   └── gpu_training_script.py # main training entry point
-    └── Evaluation/
-        └── run_inference.py        # load a checkpoint, generate a reconstruction
-        └── eval_script.ipynb       # ROUGE, cosine-sim, embedding-space comparisons
+    ├── Evaluation/
+    │   ├── run_inference.py       # load a checkpoint, generate a reconstruction
+    │   └── eval_script.ipynb      # ROUGE, cosine-sim, embedding-space comparisons
+    └── Sampler_Tool/              # n-sample diverse reconstruction tool
+        └── README.md              # quickstart, architecture, memory guide
 ```
 
 ---
@@ -76,6 +90,7 @@ passages, encoded with `Qwen/Qwen3-Embedding-0.6B`. Field-by-field schema in
 | [`jg-eno/ReLoDer_v1`](https://huggingface.co/jg-eno/ReLoDer_v1) | 64 |
 | [`jg-eno/ReLoDer_v2`](https://huggingface.co/jg-eno/ReLoDer_v2) | 64 |
 | [`jg-eno/ReLoDer_v3`](https://huggingface.co/jg-eno/ReLoDer_v3) | 128 |
+| [`Subhav-K/ReLoDer_v4`](https://huggingface.co/Subhav-K/ReLoDer_v4) | 64 ← current |
 
 Each repo holds two checkpoint files:
 
@@ -86,10 +101,11 @@ New training runs auto-version: the training script checks the highest
 existing `jg-eno/ReLoDer_v{n}` repo and pushes to `v{n+1}`, so re-running
 training never overwrites a previous checkpoint.
 
-> **`prefix_len` is not stored in the checkpoint itself** — `run_inference.py`
-> auto-detects LoRA rank/target modules from the state dict, but you still
-> need to set `prefix_len` by hand to match the table above when loading a
-> given version.
+> **`prefix_len` auto-detection:** the Sampler Tool (`src/Sampler_Tool`) detects
+> `prefix_len`, `mlp_hidden_dim`, LoRA rank, target modules, and MLP dtype
+> directly from the checkpoint state dict — no manual configuration needed.
+> The raw `run_inference.py` script still requires `prefix_len` to be set by
+> hand to match the table above.
 
 ---
 

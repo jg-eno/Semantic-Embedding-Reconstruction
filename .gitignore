@@ -9,3 +9,5 @@ datasets/gte_msmarco_token_sentence_embeddings.h5
 */*/hf_upload_staging
 */*/*.tsv
 */*/*ruff_cache
+/.vscode
+*/*/*/__pycache__

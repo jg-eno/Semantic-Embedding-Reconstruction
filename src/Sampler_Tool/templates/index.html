@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReLoDer Sampler</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f4f0;
+      --surface: #ffffff;
+      --border: #c8c8c0;
+      --border-focus: #555;
+      --text: #1a1a1a;
+      --muted: #666;
+      --accent: #1a1a1a;
+      --tag-bg: #efefeb;
+      --error: #b00020;
+      --mono: "JetBrains Mono", "Fira Mono", "Courier New", monospace;
+      --sans: "Inter", system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.75rem;
+    }
+    .header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header p  { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+    }
+
+    .panel-title {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Horizontal panel rows ── */
+    /* Each panel row lays its fields out side-by-side */
+    .panel-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      align-items: flex-end;
+    }
+
+    .field { flex: 1 1 140px; min-width: 120px; }
+    .field.wide { flex: 2 1 240px; }
+    .field.narrow { flex: 0 0 100px; }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+    }
+    label .hint { font-weight: 400; color: var(--muted); margin-left: 0.25rem; }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 0.4rem 0.55rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, textarea:focus { border-color: var(--border-focus); }
+    textarea { resize: vertical; min-height: 56px; }
+
+    /* ── Formula box — inline inside sampling panel ── */
+    .formula-box {
+      flex: 0 0 auto;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.75rem;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 200px;
+    }
+    .formula-label {
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+    .formula {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+    .formula-note {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      white-space: nowrap;
+    }
+
+    /* ── Input + Run row ── */
+    .run-row {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    .run-row .field { flex: 1 1 auto; }
+    .run-row .field.narrow { flex: 0 0 90px; }
+
+    button#run-btn {
+      flex: 0 0 140px;
+      padding: 0.55rem 1rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-family: var(--sans);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+      align-self: flex-end;
+      height: 32px;
+    }
+    button#run-btn:hover { opacity: 0.82; }
+    button#run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Results ── */
+    .results-area { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .status-bar {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      min-height: 1.1em;
+    }
+    .status-bar.error { color: var(--error); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .sample-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.8rem 0.9rem;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.45rem;
+    }
+    .sample-index {
+      font-size: 0.62rem;
+      font-weight: 700;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      padding: 0.12rem 0.4rem;
+      font-family: var(--mono);
+      color: var(--muted);
+    }
+    .temp-tag {
+      font-size: 0.62rem;
+      font-family: var(--mono);
+      color: var(--muted);
+    }
+    .sample-text {
+      font-size: 0.84rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .empty-state {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      padding: 2rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 11px; height: 11px;
+      border: 2px solid #ccc;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.35rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>ReLoDer Sampler</h1>
+    <p>Encode a sentence → reconstruct n diverse paragraph variants from its embedding</p>
+  </div>
+
+  <!-- Checkpoint -->
+  <div class="panel">
+    <div class="panel-title">Checkpoint</div>
+    <div class="panel-fields">
+      <div class="field wide">
+        <label>HF Repo ID</label>
+        <input type="text" id="repo" value="{{ defaults.repo }}" placeholder="org/model-name" />
+      </div>
+      <div class="field wide">
+        <label>Checkpoint filename</label>
+        <input type="text" id="filename" value="{{ defaults.filename }}" placeholder="best_steps_checkpoint.pt" />
+      </div>
+      <div class="field narrow">
+        <label>Prefix len</label>
+        <input type="number" id="prefix_len" value="{{ defaults.prefix_len }}" min="1" />
+      </div>
+      <div class="field narrow">
+        <label>Max tokens</label>
+        <input type="number" id="max_new_tokens" value="{{ defaults.max_new_tokens }}" min="1" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Models -->
+  <div class="panel">
+    <div class="panel-title">Models</div>
+    <div class="panel-fields">
+      <div class="field wide">
+        <label>Base decoder <span class="hint">(HF ID)</span></label>
+        <input type="text" id="base_model" value="{{ defaults.base_model }}" />
+      </div>
+      <div class="field wide">
+        <label>Encoder <span class="hint">(HF ID)</span></label>
+        <input type="text" id="encoder_model" value="{{ defaults.encoder_model }}" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Sampling Parameters -->
+  <div class="panel">
+    <div class="panel-title">Sampling Parameters</div>
+    <div class="panel-fields">
+      <div class="field narrow">
+        <label>Base temp (T₀)</label>
+        <input type="number" id="temperature" value="{{ defaults.temperature }}" step="0.05" min="0.1" max="5" />
+      </div>
+      <div class="field narrow">
+        <label>Temp step (Δ)</label>
+        <input type="number" id="temperature_step" value="{{ defaults.temperature_step }}" step="0.01" min="0" max="1" />
+      </div>
+      <div class="field narrow">
+        <label>Top-p</label>
+        <input type="number" id="top_p" value="{{ defaults.top_p }}" step="0.01" min="0" max="1" />
+      </div>
+      <div class="field narrow">
+        <label>Top-k <span class="hint">(0=off)</span></label>
+        <input type="number" id="top_k" value="{{ defaults.top_k }}" min="0" />
+      </div>
+      <div class="field narrow">
+        <label>Rep. penalty</label>
+        <input type="number" id="repetition_penalty" value="{{ defaults.repetition_penalty }}" step="0.05" min="1" max="5" />
+      </div>
+      <div class="formula-box">
+        <div class="formula-label">Temperature schedule</div>
+        <div class="formula">T<sub>i</sub> = T<sub>0</sub> + i × Δ</div>
+        <div class="formula-note" id="formula-example"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input + Run -->
+  <div class="panel">
+    <div class="panel-title">Input</div>
+    <div class="run-row">
+      <div class="field">
+        <label>Sentence</label>
+        <textarea id="sentence">{{ defaults.sentence }}</textarea>
+      </div>
+      <div class="field narrow">
+        <label>n samples</label>
+        <input type="number" id="n" value="{{ defaults.n }}" min="1" max="20" />
+      </div>
+      <button id="run-btn">Run Sampler</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-area">
+    <div class="status-bar" id="status"></div>
+    <div id="results-container">
+      <div class="empty-state">Results will appear here</div>
+    </div>
+  </div>
+
+</div>
+<script>
+  function updateFormula() {
+    const T0   = parseFloat(document.getElementById('temperature').value) || 0;
+    const step = parseFloat(document.getElementById('temperature_step').value) || 0;
+    const n    = parseInt(document.getElementById('n').value) || 5;
+
+    const indices = [0, 1, Math.max(2, Math.floor(n / 2)), n - 1]
+      .filter((v, i, a) => a.indexOf(v) === i).slice(0, 4);
+
+    document.getElementById('formula-example').innerHTML =
+      indices.map(i => `i=${i} → ${(T0 + i * step).toFixed(2)}`).join(' &nbsp;|&nbsp; ');
+  }
+
+  ['temperature', 'temperature_step', 'n'].forEach(id =>
+    document.getElementById(id).addEventListener('input', updateFormula)
+  );
+  updateFormula();
+
+  document.getElementById('run-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('run-btn');
+    const status = document.getElementById('status');
+    const container = document.getElementById('results-container');
+
+    const payload = {
+      repo:               document.getElementById('repo').value.trim(),
+      filename:           document.getElementById('filename').value.trim(),
+      prefix_len:         document.getElementById('prefix_len').value,
+      base_model:         document.getElementById('base_model').value.trim(),
+      encoder_model:      document.getElementById('encoder_model').value.trim(),
+      sentence:           document.getElementById('sentence').value.trim(),
+      n:                  document.getElementById('n').value,
+      max_new_tokens:     document.getElementById('max_new_tokens').value,
+      temperature:        document.getElementById('temperature').value,
+      temperature_step:   document.getElementById('temperature_step').value,
+      top_p:              document.getElementById('top_p').value,
+      top_k:              document.getElementById('top_k').value,
+      repetition_penalty: document.getElementById('repetition_penalty').value,
+    };
+
+    btn.disabled = true;
+    status.className = 'status-bar';
+    status.innerHTML = '<span class="spinner"></span> Running inference…';
+    container.innerHTML = '';
+
+    try {
+      const res  = await fetch('/sample', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.status === 'error') {
+        status.className = 'status-bar error';
+        status.textContent = '✗ ' + data.message;
+        return;
+      }
+
+      const T0   = parseFloat(payload.temperature);
+      const step = parseFloat(payload.temperature_step);
+
+      status.textContent = `✓ ${data.samples.length} samples returned`;
+      container.innerHTML = `<div class="results-grid">${
+        data.samples.map((text, i) => `
+          <div class="sample-card">
+            <div class="card-header">
+              <span class="sample-index">#${i + 1}</span>
+              <span class="temp-tag">T = ${(T0 + i * step).toFixed(2)}</span>
+            </div>
+            <div class="sample-text">${escapeHtml(text)}</div>
+          </div>
+        `).join('')
+      }</div>`;
+
+    } catch (err) {
+      status.className = 'status-bar error';
+      status.textContent = '✗ Network error: ' + err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>

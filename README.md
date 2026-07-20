@@ -73,7 +73,7 @@ Use cases: controlled semantic data augmentation, embedding space coverage analy
 |---|---|---|
 | [`jg-eno/MSMACRO-1M-Qwen-Embeddings`](https://huggingface.co/datasets/jg-eno/MSMACRO-1M-Qwen-Embeddings) | v1–v3 training | 1M records |
 | [`jg-eno/msmarco-v5.1-Qwen-Embeddings`](https://huggingface.co/datasets/jg-eno/msmarco-v5.1-Qwen-Embeddings) | v1–v3 training | 100K records |
-| [`Subhav-K/cnn-dailymail-chunked-512-embeddings`](https://huggingface.co/datasets/Subhav-K/cnn-dailymail-chunked-512-embeddings) | v4 training | — |
+| [`Subhav-K/cnn-dailymail-chunked-512-embeddings`](https://huggingface.co/datasets/Subhav-K/cnn-dailymail-chunked-512-embeddings) | v4 training | 700K records |
 
 The MS MARCO datasets are built by `src/Datasets/dataset_push.py` from `microsoft/ms_marco`
 passages, encoded with `Qwen/Qwen3-Embedding-0.6B`. Field-by-field schema in
